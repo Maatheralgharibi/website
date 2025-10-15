@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ar" class="scroll-smooth" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مآثر الغريبي | مطور ويب إبداعي</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS مخصص للأنيميشن والتصميم -->
+  <style>
+    /* Floral Palette:
+       Background: Video
+       Dark Text (Plum): #4A2C3A
+       Accent Pink: #E5739D
+       Subtle Text (Muted Mauve): #8D7B82
+       Glass BG: rgba(255, 240, 245, 0.6)
+    */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #FFF0F5; /* لون وردي فاتح كخلفية بديلة */
+      color: #4A2C3A; /* لون نص داكن */
+      overflow-x: hidden;
+    }
+
+    #bg-video {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        min-width: 100%;
+        min-height: 100%;
+        width: auto;
+        height: auto;
+        z-index: -2;
+        object-fit: cover;
+        filter: brightness(0.95) blur(2px); /* تخفيف إضاءة الفيديو وإضافة تمويه خفيف */
+    }
+
+    body::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 240, 245, 0.2); /* طبقة وردية شفافة جدًا فوق الفيديو */
+        z-index: -1;
+    }
+
+    /* تأثير زجاجي للشريط العلوي */
+    .glass-header {
+      background: rgba(255, 240, 245, 0.6); /* خلفية زجاجية وردية */
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(74, 44, 58, 0.1);
+    }
+    
+    /* أنيميشن خط سفلي لروابط التنقل */
+    nav a {
+      position: relative;
+    }
+    nav a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -4px;
+      right: 0;
+      background-color: #E5739D; /* لون وردي مميز */
+      transition: width 0.3s ease-in-out;
+    }
+    nav a:hover::after {
+      width: 100%;
+    }
+    
+    /* تصميم مخصص للزر */
+    .glowing-btn {
+        position: relative;
+        color: #E5739D;
+        border: 2px solid #E5739D;
+        box-shadow: 0 0 5px #E5739D, 0 0 10px #E5739D inset;
+        transition: all 0.3s ease;
+    }
+    .glowing-btn:hover {
+        color: #FFF0F5;
+        background-color: #E5739D;
+        box-shadow: 0 0 20px #E5739D;
+    }
+
+    /* أنيميشن ظهور العناصر عند التمرير */
+    .scroll-animate {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    .scroll-animate.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Chat Widget Styles */
+    #chat-toggle {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 60px;
+        height: 60px;
+        background-color: #E5739D;
+        color: white;
+        border-radius: 50%;
+        border: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        cursor: pointer;
+        z-index: 1000;
+        transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+    #chat-toggle:hover {
+        transform: scale(1.1);
+        background-color: #d86890;
+    }
+    #chat-window {
+        position: fixed;
+        bottom: 90px;
+        left: 20px;
+        width: 350px;
+        max-width: 90vw;
+        height: 500px;
+        max-height: 70vh;
+        background: rgba(255, 240, 245, 0.8);
+        backdrop-filter: blur(15px);
+        border-radius: 15px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        z-index: 999;
+        transform: scale(0.5) translateY(100px);
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        transform-origin: bottom left;
+    }
+    #chat-window.open {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+    .chat-header {
+        padding: 15px;
+        background: rgba(229, 115, 157, 0.2);
+        border-bottom: 1px solid rgba(74, 44, 58, 0.1);
+        font-weight: 600;
+    }
+    #chat-messages {
+        flex-grow: 1;
+        padding: 15px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .message {
+        padding: 10px 15px;
+        border-radius: 20px;
+        max-width: 80%;
+        line-height: 1.5;
+    }
+    .user-message {
+        background-color: #E5739D;
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 5px;
+    }
+    .ai-message {
+        background-color: #ffffff;
+        color: #4A2C3A;
+        align-self: flex-start;
+        border-bottom-left-radius: 5px;
+    }
+    .typing-indicator {
+        align-self: flex-start;
+        display: flex;
+        gap: 4px;
+        padding: 10px;
+    }
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background-color: #8D7B82;
+        border-radius: 50%;
+        animation: typing 1s infinite ease-in-out;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing {
+        0%, 100% { opacity: 0.3; transform: translateY(0); }
+        50% { opacity: 1; transform: translateY(-4px); }
+    }
+    #chat-form {
+        display: flex;
+        padding: 10px;
+        border-top: 1px solid rgba(74, 44, 58, 0.1);
+    }
+    #chat-input {
+        flex-grow: 1;
+        border: none;
+        padding: 10px;
+        border-radius: 20px;
+        background-color: rgba(255,255,255,0.5);
+        color: #4A2C3A;
+    }
+    #chat-input:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px #E5739D;
+    }
+    #chat-form button {
+        background: none;
+        border: none;
+        color: #E5739D;
+        padding: 0 15px;
+        cursor: pointer;
+    }
+	#bg-video {
+	  position: fixed;
+	  top: 0;
+	  left: 0;
+	  width: 100%;
+	  height: 100%;
+	  object-fit: cover;   
+	  object-position: center center;  
+	  z-index: -1;
+	  margin: 0;
+	  padding: 0;
+	  border: none;
+	}
+  </style>
+</head>
+<body class="antialiased">
+
+  <video autoplay loop muted playsinline id="bg-video">
+    <source src="pinterest-video.mp4" type="video/mp4">
+    متصفحك لا يدعم وسم الفيديو.
+  </video>
+
+  <!-- الشريط العلوي -->
+  <header id="header" class="glass-header fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="#" class="text-2xl font-bold text-[#4A2C3A] tracking-wider">مآثر</a>
+      <nav class="hidden md:flex space-x-8 text-lg">
+        <a href="#about" class="text-[#4A2C3A] hover:text-[#E5739D] transition-colors duration-300">عني</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="#hobbies" class="text-[#4A2C3A] hover:text-[#E5739D] transition-colors duration-300">هواياتي</a>
+        <a href="#goals" class="text-[#4A2C3A] hover:text-[#E5739D] transition-colors duration-300">أهدافي</a>
+        <a href="#contact" class="text-[#4A2C3A] hover:text-[#E5739D] transition-colors duration-300">تواصل</a>
+      </nav>
+      <button id="mobile-menu-button" class="md:hidden text-[#4A2C3A] focus:outline-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- قائمة الجوال -->
+  <div id="mobile-menu" class="hidden md:hidden fixed inset-0 bg-[#FFF0F5]/95 z-40 backdrop-blur-sm">
+    <div class="flex flex-col items-center justify-center h-full space-y-8 text-2xl">
+      <a href="#about" class="mobile-link text-[#4A2C3A] hover:text-[#E5739D]">عني</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#hobbies" class="mobile-link text-[#4A2C3A] hover:text-[#E5739D]">هواياتي</a>
+      <a href="#goals" class="mobile-link text-[#4A2C3A] hover:text-[#E5739D]">أهدافي</a>
+      <a href="#contact" class="mobile-link text-[#4A2C3A] hover:text-[#E5739D]">تواصل</a>
+    </div>
+  </div>
+
+
+  <main>
+    <!-- القسم الرئيسي -->
+    <section id="hero" class="min-h-screen flex items-center justify-center text-center px-4">
+      <div class="max-w-3xl scroll-animate">
+        <img src="https://placehold.co/150x150/4A2C3A/E5739D?text=MA" alt="مآثر الغريبي" class="mx-auto rounded-full w-36 h-36 mb-6 border-4 border-white/50 shadow-lg">
+        <h1 class="text-5xl md:text-7xl font-bold text-[#4A2C3A] mb-4"> مآثر الغريبي</h1>
+        <p class="text-xl md:text-2xl text-[#E5739D] font-semibold">مطور إبداعي وفنان رقمي</p>
+        <p class="mt-6 max-w-2xl mx-auto text-[#4A2C3A]/90">
+          أصنع تجارب رقمية غامرة حيث تلتقي التكنولوجيا بالفن. شغوف ببناء مواقع تفاعلية ومذهلة بصريًا ومتمحورة حول المستخدم.
+        </p>
+      </div>
+    </section>
+
+    <!-- قسم "عني" -->
+    <section id="about" class="py-20 md:py-32 px-6">
+      <div class="container mx-auto max-w-4xl scroll-animate">
+        <h2 class="text-4xl font-bold text-center mb-4 text-[#4A2C3A]">من أنا؟</h2>
+        <div class="w-24 h-1 bg-[#E5739D] mx-auto mb-12 rounded"></div>
+        <p class="text-lg text-center leading-relaxed bg-white/30 backdrop-blur-sm p-8 rounded-xl shadow-md">
+            كشخص شغوف بالفن والتكنولوجيا، وجدت شغفي في تطوير الويب - اللوحة المثالية لتحويل الأفكار إلى واقع. بدأت رحلتي بفضول حول كيفية صنع المواقع الجميلة، وتطورت إلى مسيرة مهنية مكرسة لإتقان هذه الحرفة. أتخصص في تطوير الواجهات الأمامية، مع التركيز على الكود النظيف، والتصميم المتجاوب، والرسوم المتحركة التي تخلق تجربة مستخدم لا تُنسى.
+        </p>
+      </div>
+    </section>
+
+    <!-- قسم الهوايات -->
+    <section id="hobbies" class="py-20 md:py-32 bg-black/5 px-6">
+      <div class="container mx-auto max-w-6xl scroll-animate">
+        <h2 class="text-4xl font-bold text-center mb-4 text-[#4A2C3A]">هواياتي</h2>
+        <div class="w-24 h-1 bg-[#E5739D] mx-auto mb-12 rounded"></div>
+        <div class="grid md:grid-cols-3 gap-8 text-center">
+          <!-- هواية 1 -->
+          <div class="bg-white/40 backdrop-blur-md p-8 rounded-2xl shadow-lg transform hover:-translate-y-2 transition-transform duration-300">
+            <div class="text-[#E5739D] mx-auto mb-4 w-16 h-16 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            </div>
+            <h3 class="text-2xl font-semibold mb-2">تصاميم 3D وأنيميشن</h3>
+            <p class="text-[#8D7B82]">تجربة أدوات مثل Three.js و Blender لإنشاء تصميمات ويب تفاعلية ثلاثية الأبعاد ورسوم متحركة سلسة.</p>
+          </div>
+          <!-- هواية 2 -->
+          <div class="bg-white/40 backdrop-blur-md p-8 rounded-2xl shadow-lg transform hover:-translate-y-2 transition-transform duration-300">
+             <div class="text-[#E5739D] mx-auto mb-4 w-16 h-16 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.77-.77-.77a5.4 5.4 0 0 0-7.65 0C2.46 6.51 2 8.6 2 10.51V18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-7.5c0-1.9-1.5-3.5-3.5-3.5h0Z"></path><path d="m2 10.51 9.2-9.2a2.4 2.4 0 0 1 3.4 0L22 10.51"></path></svg>
+            </div>
+            <h3 class="text-2xl font-semibold mb-2">الفن الرقمي</h3>
+            <p class="text-[#8D7B82]">إنشاء رسوم توضيحية وفنون مفاهيمية، وتحويل الأفكار الخيالية إلى قصص مرئية باستخدام الأدوات الرقمية.</p>
+          </div>
+          <!-- هواية 3 -->
+          <div class="bg-white/40 backdrop-blur-md p-8 rounded-2xl shadow-lg transform hover:-translate-y-2 transition-transform duration-300">
+            <div class="text-[#E5739D] mx-auto mb-4 w-16 h-16 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"></path><path d="M7.07 14.94c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3c0-1.45-1.02-2.68-2.36-2.93"></path><path d="m14.94 7.07 2.89-2.89"></path><path d="m3.01 21.01 2.89-2.89"></path><path d="m12 12 5.73-5.73"></path></svg>
+            </div>
+            <h3 class="text-2xl font-semibold mb-2">استكشاف الطبيعة</h3>
+            <p class="text-[#8D7B82]">المشي لمسافات طويلة في الجبال والتقاط صور للمناظر الطبيعية، والعثور على الإلهام في العالم الطبيعي.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- قسم الأهداف -->
+    <section id="goals" class="py-20 md:py-32 px-6">
+      <div class="container mx-auto max-w-4xl scroll-animate">
+        <h2 class="text-4xl font-bold text-center mb-4 text-[#4A2C3A]">أهدافي</h2>
+        <div class="w-24 h-1 bg-[#E5739D] mx-auto mb-12 rounded"></div>
+        <p class="text-lg text-center leading-relaxed mb-8 bg-white/30 backdrop-blur-sm p-8 rounded-xl shadow-md">
+            يدفعني شغفي إلى التعلم المستمر وتحدي حدود تكنولوجيا الويب. ينصب تركيزي على إنشاء منتجات رقمية هادفة ومؤثرة.
+        </p>
+        <div class="space-y-6">
+            <div class="bg-white/40 backdrop-blur-md p-6 rounded-lg flex items-center space-x-4 rtl:space-x-reverse">
+                <div class="text-[#E5739D]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 22a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-1Z"/><path d="M2.5 22a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-1Z"/><path d="M7.5 22a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-1Z"/><path d="M12 7.84c-2.4 0-4.72.6-6.4 1.45a.5.5 0 0 0-.2.83l1.1 2.2a.5.5 0 0 0 .8.25c.5-.2 1.1-.33 1.7-.33s1.2.13 1.7.33a.5.5 0 0 0 .8-.25l1.1-2.2a.5.5 0 0 0-.2-.83C16.72 8.44 14.4 7.84 12 7.84Z"/><path d="M12 2a3.5 3.5 0 0 0-3.5 3.5v2.75a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5V5.5A3.5 3.5 0 0 0 12 2Z"/><path d="M12 13.84c-2.4 0-4.72.6-6.4 1.45a.5.5 0 0 0-.2.83l1.1 2.2a.5.5 0 0 0 .8.25c.5-.2 1.1-.33 1.7-.33s1.2.13 1.7.33a.5.5 0 0 0 .8-.25l1.1-2.2a.5.5 0 0 0-.2-.83C16.72 14.44 14.4 13.84 12 13.84Z"/></svg></div>
+                <p>أن أصبح مطورًا رائدًا في تجارب الويب التفاعلية المدمجة مع الذكاء الاصطناعي.</p>
+            </div>
+             <div class="bg-white/40 backdrop-blur-md p-6 rounded-lg flex items-center space-x-4 rtl:space-x-reverse">
+                <div class="text-[#E5739D]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8.5 9 12l-3.5 3.5L2 12l3.5-3.5Z"/><path d="m12 2 3.5 3.5L12 9 8.5 5.5 12 2Z"/><path d="M18.5 8.5 22 12l-3.5 3.5L15 12l3.5-3.5Z"/><path d="m12 15 3.5 3.5L12 22l-3.5-3.5L12 15Z"/></svg></div>
+                <p>المساهمة في المشاريع مفتوحة المصدر التي تدفع حدود تكنولوجيا الواجهات الأمامية.</p>
+            </div>
+             <div class="bg-white/40 backdrop-blur-md p-6 rounded-lg flex items-center space-x-4 rtl:space-x-reverse">
+                <div class="text-[#E5739D]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                <p>إلهام وتوجيه الآخرين من خلال التصميم الإبداعي ومشاركة المعرفة.</p>
+            </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- قسم التواصل -->
+    <section id="contact" class="py-20 md:py-32 bg-black/5 px-6">
+      <div class="container mx-auto max-w-3xl text-center scroll-animate">
+        <h2 class="text-4xl font-bold text-center mb-4 text-[#4A2C3A]">تواصل معي</h2>
+        <div class="w-24 h-1 bg-[#E5739D] mx-auto mb-8 rounded"></div>
+        <p class="text-lg mb-10">
+          هل لديك مشروع في ذهنك أو ترغب فقط في إلقاء التحية؟ أحب أن أسمع منك.
+        </p>
+        <a href="mailto:f202000505@buc.edu.om" class="glowing-btn inline-block text-lg font-semibold py-3 px-8 rounded-full">
+          f202000505@buc.edu.om
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- التذييل -->
+  <footer class="bg-black/10 text-center py-6">
+    <p class="text-[#8D7B82]">© 2025 مآثر الغريبي. جميع الحقوق محفوظة.</p>
+  </footer>
+
+  <!-- Chat Widget -->
+  <button id="chat-toggle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path></svg>
+  </button>
+  <div id="chat-window">
+      <div class="chat-header">مرحباً! كيف يمكنني مساعدتك؟</div>
+      <div id="chat-messages">
+          <div class="message ai-message">Ask my(:</div>
+      </div>
+      <form id="chat-form">
+          <input type="text" id="chat-input" placeholder="اكتب رسالتك هنا..." autocomplete="off">
+          <button type="submit">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
+      </form>
+  </div>
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // تبديل قائمة الجوال
+      const mobileMenuButton = document.getElementById('mobile-menu-button');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const mobileLinks = document.querySelectorAll('.mobile-link');
+
+      mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+
+      mobileLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          mobileMenu.classList.add('hidden');
+        });
+      });
+
+      // أنيميشن عند التمرير
+      const scrollAnimate = document.querySelectorAll('.scroll-animate');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.1
+      });
+
+      scrollAnimate.forEach(element => {
+        observer.observe(element);
+      });
+      
+      // تغيير خلفية الشريط العلوي عند التمرير
+      const header = document.getElementById('header');
+      window.addEventListener('scroll', () => {
+          if(window.scrollY > 50) {
+              header.classList.add('py-2');
+              header.classList.remove('py-4');
+          } else {
+              header.classList.add('py-4');
+              header.classList.remove('py-2');
+          }
+      });
+
+      // Chat Widget Logic
+      const chatToggle = document.getElementById('chat-toggle');
+      const chatWindow = document.getElementById('chat-window');
+      const chatForm = document.getElementById('chat-form');
+      const chatInput = document.getElementById('chat-input');
+      const chatMessages = document.getElementById('chat-messages');
+
+      chatToggle.addEventListener('click', () => {
+          chatWindow.classList.toggle('open');
+      });
+
+      chatForm.addEventListener('submit', handleChatSubmit);
+
+      function addMessage(sender, text) {
+          const messageElement = document.createElement('div');
+          messageElement.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
+          messageElement.textContent = text;
+          chatMessages.appendChild(messageElement);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function showTypingIndicator() {
+          const typingIndicator = document.createElement('div');
+          typingIndicator.id = 'typing-indicator';
+          typingIndicator.classList.add('typing-indicator');
+          typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+          chatMessages.appendChild(typingIndicator);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function removeTypingIndicator() {
+          const typingIndicator = document.getElementById('typing-indicator');
+          if (typingIndicator) {
+              typingIndicator.remove();
+          }
+      }
+
+      async function handleChatSubmit(e) {
+          e.preventDefault();
+          const userInput = chatInput.value.trim();
+          if (!userInput) return;
+
+          addMessage('user', userInput);
+          chatInput.value = '';
+          showTypingIndicator();
+
+          try {
+            const aiResponse = await getGeminiResponse(userInput);
+            removeTypingIndicator();
+            addMessage('ai', aiResponse);
+          } catch (error) {
+            removeTypingIndicator();
+            addMessage('ai', 'عذراً، حدث خطأ ما. الرجاء المحاولة مرة أخرى.');
+            console.error("Error fetching Gemini response:", error);
+          }
+      }
+
+      async function getGeminiResponse(userQuery) {
+        const apiKey = ""; // Canvas will provide this
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        
+        const systemPrompt = `أنت مساعد افتراضي وودود ومحترف في موقع السيرة الذاتية لمآثر الغريبي. مآثر هي مطورة ويب إبداعية وفنانة رقمية. 
+        معلومات أساسية عن مآثر:
+        - الهوايات: تصميمات ثلاثية الأبعاد وأنيميشن (باستخدام Three.js و Blender)، الفن الرقمي، واستكشاف الطبيعة.
+        - الأهداف: أن تصبح مطورة رائدة في تجارب الويب المدمجة مع الذكاء الاصطناعي، المساهمة في المشاريع مفتوحة المصدر، وإلهام الآخرين.
+        - البريد الإلكتروني للتواصل: maather@example.com
+        مهمتك هي الإجابة على أسئلة الزوار حول مآثر، مهاراتها، هواياتها، وأهدافها بناءً على هذه المعلومات. حافظ على نبرة إيجابية وداعمة. كن موجزًا ومباشرًا. تحدث باللغة العربية.`;
+
+        const payload = {
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          },
+          contents: [{
+            parts: [{ text: userQuery }]
+          }]
+        };
+
+        let attempts = 0;
+        const maxAttempts = 5;
+        while (attempts < maxAttempts) {
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    return candidate.content.parts[0].text;
+                } else {
+                    throw new Error("Invalid response structure from API.");
+                }
+
+            } catch (error) {
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    throw error;
+                }
+                const delay = Math.pow(2, attempts) * 100;
+                await new Promise(res => setTimeout(res, delay));
+            }
+        }
+        throw new Error("Failed to get a response from the AI after multiple attempts.");
+      }
+
+    });
+  </script>
+
+</body>
+</html>
+
